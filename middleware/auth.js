@@ -11,7 +11,7 @@ const protect = async (req, res, next) => {
 
         const decodedToken = jwt.verify(token, process.env.ACESS_TOKEN_SECRET)
 
-        const user = await User.findById(decodedToken?._id).select("-refreshToken")
+        const user = await User.findById(decodedToken?._id).select("-__v -createdAt -updatedAt");
 
         if (!user) {
             return res.status(401).json({ msg: "Invalid access Token" })

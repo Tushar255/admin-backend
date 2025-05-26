@@ -27,6 +27,8 @@ export const addMarks = async (req, res) => {
             return res.status(400).json({ msg: 'Marks entry limit reached' });
         }
 
+        const { colleges, rankRange } = await prediction(marks, category);
+
         // Add the new mark
         user.marks.push(marks);
 
@@ -37,10 +39,10 @@ export const addMarks = async (req, res) => {
         // Save the updated user document
         await user.save();
 
-        const { colleges, rankRange } = await prediction(marks, category);
+        const { __v, createdAt, updatedAt, ...cleanUser } = user.toObject();
 
-        return res.status(200).json({ user, colleges, rankRange, msg: "Marks Updated!" });
+        return res.status(200).json({ user: cleanUser, colleges, rankRange, msg: "Marks Updated!" });
     } catch (error) {
-        return res.status(500).json({ error });
+        return res.status(500).json({ error: error.message });
     }
 }

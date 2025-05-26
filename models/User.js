@@ -19,17 +19,11 @@ const UserSchema = new mongoose.Schema({
     city: {
         type: String,
     },
-    exam: {
-        type: String,
-    },
     institute: {
         type: String,
     },
     marks: {
         type: [Number]
-    },
-    refreshToken: {
-        type: String
     }
 }, { timestamps: true }
 );
@@ -41,23 +35,11 @@ UserSchema.methods.generateAccessToken = function () {
             name: this.firstName + " " + this.lastName,
             phone: this.phone,
             city: this.city,
-            exam: this.exam,
+            institute: this.institute,
         },
         process.env.ACESS_TOKEN_SECRET,
         {
             expiresIn: process.env.ACESS_TOKEN_EXPIRY
-        }
-    )
-}
-
-UserSchema.methods.generateRefreshToken = function () {
-    return jwt.sign(
-        {
-            _id: this._id
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
     )
 }

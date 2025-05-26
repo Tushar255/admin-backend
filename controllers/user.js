@@ -1,5 +1,4 @@
 import User from "../models/User.js"
-import jwt from "jsonwebtoken";
 
 export const getAllUsers = async (req, res) => {
     try {
@@ -19,29 +18,13 @@ export const getAllUsers = async (req, res) => {
                 $sort: { markAtIndex: -1 }
             },
             {
-                $project: { refreshToken: 0, __v: 0, markAtIndex: 0, _id: 0 }
+                $project: { __v: 0, markAtIndex: 0, _id: 0 }
             }
         ]);
 
         res.status(200).json({ users });
     } catch (error) {
         res.status(500).json({ msg: "Something went wrong" });
-    }
-}
-
-export const generateAccessAndRefreshTokens = async (userId) => {
-    try {
-        const user = await User.findById(userId);
-        const accessToken = user.generateAccessToken();
-        const refreshToken = user.generateRefreshToken();
-
-        user.refreshToken = refreshToken;
-        await user.save({ validateBeforeSave: false });
-
-        return { accessToken, refreshToken }
-
-    } catch (error) {
-        res.status(500).json({ msg: "Something went wrong while generating access and refresh token" })
     }
 }
 
@@ -53,22 +36,20 @@ export const login = async (req, res) => {
             return res.status(400).json({ msg: "Phone no. fields are required" });
         }
 
-        let user = await User.findOne({ phone: phone })
+        let user = await User.findOne({ phone: phone }).select("-__v -createdAt -updatedAt");
 
         if (!user) {
             user = await User.create({ phone });
             return res.status(200).json({ profileCompleted: false, msg: "New-User created" })
         }
 
-        if (!user.firstName || !user.lastName || !user.city || !user.exam) {
+        if (!user.firstName || !user.lastName || !user.city || !user.institute) {
             return res.status(404).json({ profileCompleted: false, msg: "Please fill your remaining details" })
         }
 
-        const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+        const accessToken = user.generateAccessToken();
 
-        const loggedInUser = await User.findById({ _id: user._id }).select("-refreshToken")
-
-        return res.status(200).json({ user: loggedInUser, accessToken, refreshToken, profileCompleted: true });
+        return res.status(200).json({ user, accessToken, profileCompleted: true });
     } catch (error) {
         return res.status(500).json({ error });
     }
@@ -91,68 +72,31 @@ export const logout = async (req, res) => {
 }
 
 export const signup = async (req, res) => {
-    const { firstName, lastName, phone, city, exam } = req.body;
+    const { firstName, lastName, phone, city, institute } = req.body;
 
     try {
-        if (!firstName || !lastName || !city || !phone || !exam) {
+        if (!firstName || !lastName || !city || !phone || !institute) {
             return res.status(400).json({ msg: "All fields are required" });
         }
 
-        let user = await User.findOne({ phone: phone });
+        let user = await User.findOne({ phone: phone }).select("-__v -createdAt -updatedAt");
 
         if (!user) {
-            res.status(400).json({ msg: "User doesn't exist" })
-        }
+            return res.status(404).json({ msg: "User doesn't exist" })
+        }       
 
         user.firstName = firstName;
         user.lastName = lastName;
         user.city = city;
-        user.exam = exam;
+        user.institute = institute;
         await user.save();
 
-        user = await User.findById(user._id)
+        const accessToken = user.generateAccessToken();
 
-        if (user) {
-            const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+        const { __v, createdAt, updatedAt, ...cleanUser } = user.toObject();
 
-            return res.status(200).json({ user, accessToken, refreshToken, msg: "Successfully Signed In" });
-        } else {
-            return res.status(500).json({ msg: "Something went wrong while registering the user" })
-        }
+        return res.status(200).json({ user: cleanUser, accessToken, msg: "Successfully Signed In" });
     } catch (error) {
         return res.status(500).json({ msg: "Something went wrong" });
     }
 };
-
-export const refreshAccessToken = async (req, res) => {
-    const incomingRefreshToken = req.body.refreshToken
-
-    if (!incomingRefreshToken) {
-        return res.status(401).json({ msg: "unauthorized request" })
-    }
-
-    try {
-        const decodedToken = jwt.verify(
-            incomingRefreshToken,
-            process.env.REFRESH_TOKEN_SECRET
-        )
-
-        const user = await User.findById(decodedToken?._id)
-
-        if (!user) {
-            res.status(401).json({ msg: "Invaid refresh token" })
-        }
-
-        if (incomingRefreshToken !== user?.refreshToken) {
-            res.status(401).json({ msg: "Refresh token is expired or used" })
-        }
-
-        const { accessToken, newRefreshToken } = await generateAccessAndRefreshTokens(user._id)
-        user.refreshToken = newRefreshToken;
-        await user.save();
-
-        return res.status(200).json({ accessToken, refreshToken: newRefreshToken, msg: "Access token refreshed" })
-    } catch (error) {
-        return res.status(401).json({ error: error?.message || "Invalid refresh token" })
-    }
-}

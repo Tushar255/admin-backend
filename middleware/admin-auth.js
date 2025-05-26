@@ -11,7 +11,7 @@ const adminProtect = async (req, res, next) => {
 
         const decodedToken = jwt.verify(token, process.env.ACESS_TOKEN_SECRET)
 
-        const admin = await Admin.findById(decodedToken?._id);
+        const admin = await Admin.findById(decodedToken?._id).select("-__v -createdAt -updatedAt");
 
         if (!admin) {
             return res.status(401).json({ msg: "Invalid access Token" })
