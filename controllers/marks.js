@@ -1,10 +1,13 @@
 import Predict from "../models/Predict.js";
 
-const prediction = async (marks, category) => {
+const prediction = async (marks, category, adminId) => {
     const values = await Predict.findOne({
+        adminId,
         'Marks.0': { $lte: marks },
         'Marks.1': { $gte: marks }
     });
+
+    if (!values) return { colleges: [], rankRange: [] };
 
     const colleges = values[category];
     const rankRange = values.Rank;
@@ -27,7 +30,7 @@ export const addMarks = async (req, res) => {
             return res.status(400).json({ msg: 'Marks entry limit reached' });
         }
 
-        const { colleges, rankRange } = await prediction(marks, category);
+        const { colleges, rankRange } = await prediction(marks, category, user.adminId);
 
         // Add the new mark
         user.marks.push(marks);

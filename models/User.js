@@ -2,31 +2,21 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken"
 
 const UserSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-    },
-    lastName: {
-        type: String,
-    },
-    registration: {
-        type: String
-    },
+    firstName: String,
+    lastName: String,
+    registration: String,
     phone: {
         type: Number,
         required: true,
         unique: true
     },
-    city: {
-        type: String,
-    },
-    institute: {
-        type: String,
-    },
-    marks: {
-        type: [Number]
+    city: String,
+    marks: [Number],
+    adminId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Admin"
     }
-}, { timestamps: true }
-);
+}, { timestamps: true });
 
 UserSchema.methods.generateAccessToken = function () {
     return jwt.sign(
@@ -35,7 +25,7 @@ UserSchema.methods.generateAccessToken = function () {
             name: this.firstName + " " + this.lastName,
             phone: this.phone,
             city: this.city,
-            institute: this.institute,
+            adminId: this.adminId,
         },
         process.env.ACESS_TOKEN_SECRET,
         {

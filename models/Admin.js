@@ -7,18 +7,24 @@ const AdminSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    isAdmin: {
-        type: Boolean,
+    name: {
+        type: String,
         required: true
+    },
+    isActive: {
+        type: Boolean,
+        default: true
     }
 })
+
 
 AdminSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {
             _id: this._id,
             phone: this.phone,
-            isAdmin: this.isAdmin,
+            name: this.name,
+            isActive: this.isActive
         },
         process.env.ACESS_TOKEN_SECRET,
         {
