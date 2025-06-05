@@ -1,5 +1,4 @@
 import axios from "axios";
-import https from "https";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -11,13 +10,7 @@ export const sendOTP = async (phone, adminId) => {
     try {
         const apiKey = adminId === process.env.adminId ? API_KEY_2 : API_KEY_1;        
         
-        const response = await axios.get(`https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN2`,
-            {
-                httpsAgent: new https.Agent({
-                    rejectUnauthorized: false, // ⚠️ Only for dev
-                }),
-            }
-        );
+        const response = await axios.get(`https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN2`);
 
         if (response.data.Status === "Success") {
             return {
