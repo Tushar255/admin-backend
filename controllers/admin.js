@@ -1,15 +1,6 @@
 import Admin from "../models/Admin.js";
 import Predict from "../models/Predict.js"
-
-export const getAllRecords = async (req, res) => {
-    try {
-        const adminId = req?.admin?._id;
-        const allEntries = await Predict.find({ adminId }).select("-__v -createdAt -updatedAt");
-        res.status(200).json(allEntries);
-    } catch (error) {
-        res.status(400).json({ error: err.message });
-    }
-}
+import { checkActiveStatus } from "../utils/checkActiveStatus.js";
 
 export const createNewRecord = async (req, res) => {
     try {
@@ -99,17 +90,37 @@ export const deleteRecord = async (req, res) => {
     }
 }
 
-export const adminLogin = async (req, res) => {
-    try {
-        const { phone } = req.body;
+export const status = async (req, res) => {
+    const { adminId } = req.body;
 
-        if (!phone) {
-            return res.status(400).json({ success: false, msg: "Phone number is required." });
+    if (!adminId) {
+        return res.status(400).json({ msg: "AdminID is required" });
+    }
+
+    try {
+        const { statusCode, msg } = await checkActiveStatus(adminId);
+
+        if (statusCode !== 200) {
+            return res.status(statusCode).json({ isActive: false, msg: msg });
         }
 
-        const admin = await Admin.findOne({ phone });
+        return res.status(statusCode).json({ isActive: true, msg: msg });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+};
 
-        if (!admin || !admin.isActive) {
+export const adminLogin = async (req, res) => {
+    try {
+        const { phone, adminId } = req.body;
+
+        if (!phone || !adminId) {
+            return res.status(400).json({ success: false, msg: "Phone number & adminId are required." });
+        }
+
+        const admin = await Admin.findOne({ phone, _id: adminId });
+
+        if (!admin || !admin?.isActive) {
             return res.status(404).json({ success: false, isActive: false, msg: "You are not an Admin." });
         }
 

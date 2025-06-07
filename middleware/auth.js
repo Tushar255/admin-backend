@@ -18,7 +18,7 @@ const protect = async (req, res, next) => {
         }
 
         const admin = await Admin.findById(user.adminId);
-        if (!admin || !admin.isActive) {
+        if (!admin || !admin?.isActive) {
             return res.status(403).json({ msg: "Institution is inactive or invalid" });
         }
 

@@ -13,8 +13,8 @@ const adminProtect = async (req, res, next) => {
 
         const admin = await Admin.findById(decodedToken?._id).select("-__v -createdAt -updatedAt");
 
-        if (!admin || !admin.isActive) {
-            return res.status(403).json({ msg: "Unauthorized or Inactive Admin" });
+        if (!admin || !admin?.isActive) {
+            return res.status(403).json({ msg: "Invalid or Inactive Admin" });
         }
 
         req.admin = admin
