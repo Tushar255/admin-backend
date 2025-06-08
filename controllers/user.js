@@ -5,10 +5,9 @@ import { checkActiveStatus } from "../utils/checkActiveStatus.js";
 export const searchUsers = async (req, res) => {
     try {
         const { query } = req.query;
-        const adminId = req.admin._id;
 
-        if (!query || !adminId) {
-            return res.status(400).json({ msg: "Search query and adminId are required" });
+        if (!query) {
+            return res.status(400).json({ msg: "Search query is required" });
         }
 
         const regex = new RegExp(query, "i");
