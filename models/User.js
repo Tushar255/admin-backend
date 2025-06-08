@@ -7,8 +7,7 @@ const UserSchema = new mongoose.Schema({
     registration: String,
     phone: {
         type: Number,
-        required: true,
-        unique: true
+        required: true
     },
     city: String,
     marks: [Number],
