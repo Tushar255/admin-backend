@@ -2,6 +2,17 @@ import Admin from "../models/Admin.js";
 import Predict from "../models/Predict.js"
 import { checkActiveStatus } from "../utils/checkActiveStatus.js";
 
+
+export const getAllRecords = async (req, res) => {
+    try {
+        const adminId = req?.admin?._id;
+        const allEntries = await Predict.find({ adminId }).select("-__v -createdAt -updatedAt");
+        res.status(200).json(allEntries);
+    } catch (error) {
+        res.status(400).json({ error: err.message });
+    }
+}
+
 export const createNewRecord = async (req, res) => {
     try {
         const adminId = req?.admin?._id;
