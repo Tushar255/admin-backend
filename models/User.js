@@ -17,6 +17,8 @@ const UserSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+UserSchema.index({ phone: 1, adminId: 1 }, { unique: true });
+
 UserSchema.methods.generateAccessToken = function () {
     return jwt.sign(
         {

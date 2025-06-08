@@ -5,6 +5,8 @@ import userRoutes from "./routes/user.js"
 import adminRoutes from "./routes/admin.js"
 import marksRoutes from "./routes/marks.js"
 import mongoose from 'mongoose';
+import Admin from './models/Admin.js';
+import User from './models/User.js';
 mongoose.set('strictQuery', true);
 
 dotenv.config();
@@ -21,8 +23,12 @@ const PORT = process.env.PORT;
 
 const connect = async () => {
     try {
-        await mongoose.connect(mongoUri);
-        console.log('Connected to MongoDB');
+        mongoose.connect(mongoUri, { autoIndex: false }).then(async () => {
+            console.log("MongoDB connected");
+
+            await Admin.init();
+            await User.init();
+        });
         app.listen(PORT, () => console.log(`Server started on Port: ${PORT}`));
     } catch (err) {
         console.error('Error connecting to MongoDB', err);

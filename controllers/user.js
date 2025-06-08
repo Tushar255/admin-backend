@@ -2,6 +2,45 @@ import Admin from "../models/Admin.js";
 import User from "../models/User.js"
 import { checkActiveStatus } from "../utils/checkActiveStatus.js";
 
+export const searchUsers = async (req, res) => {
+    try {
+        const { query } = req.query;
+        const adminId = req.admin._id;
+
+        if (!query || !adminId) {
+            return res.status(400).json({ msg: "Search query and adminId are required" });
+        }
+
+        const regex = new RegExp(query, "i");
+
+        const searchConditions = [
+            { firstName: regex },
+            { lastName: regex },
+            { city: regex },
+            { registration: regex },
+            {
+                $expr: {
+                    $regexMatch: {
+                        input: { $toString: "$phone" },
+                        regex: query,
+                        options: "i"
+                    }
+                }
+            }
+        ];
+
+        const users = await User.find({
+            adminId,
+            $or: searchConditions
+        }).select("-__v -createdAt -updatedAt");
+
+        res.status(200).json({ users });
+    } catch (error) {
+        console.error("Error in searchUsers:", error);
+        return res.status(500).json({ msg: error.message });
+    }
+}
+
 export const getAllUsers = async (req, res) => {
     try {
         const index = parseInt(req.params.index, 10);
@@ -52,7 +91,7 @@ export const getAllUsers = async (req, res) => {
         });
     } catch (error) {
         console.error("Error in getAllUsers:", error);
-        return res.status(500).json({ msg: "Something went wrong" });
+        return res.status(500).json({ msg: error.message });
     }
 };
 
