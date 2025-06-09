@@ -26,7 +26,7 @@ export const addMarks = async (req, res) => {
         }
 
         // Check if the user has already entered marks 3 times
-        if (user.marks.length >= 100) {
+        if (user.marks.length >= 3) {
             return res.status(400).json({ msg: 'Marks entry limit reached' });
         }
 
