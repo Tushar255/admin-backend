@@ -1,7 +1,19 @@
 import Admin from "../models/Admin.js";
+import User from "../models/User.js";
 import Predict from "../models/Predict.js"
 import { checkActiveStatus } from "../utils/checkActiveStatus.js";
 
+export const getAllUserByAdminId = async (req, res) => {
+    try {
+        const adminId = req.admin._id;
+
+        const allUsers = await User.find({ adminId });
+
+        res.status(200).json(allUsers);
+    } catch (error) {
+        res.status(400).json({error: error.message});
+    }
+}
 
 export const getAllRecords = async (req, res) => {
     try {
