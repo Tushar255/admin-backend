@@ -1,5 +1,5 @@
 import express from "express";
-import { adminLogin, createNewRecord, editRecord, deleteRecord, status, getAllRecords } from "../controllers/admin.js";
+import { adminLogin, createNewRecord, editRecord, deleteRecord, status, getAllRecords, getAllUserByAdminId } from "../controllers/admin.js";
 import adminProtect from "../middleware/admin-auth.js";
 import { getAllUsers, searchUsers } from "../controllers/user.js";
 
@@ -13,6 +13,7 @@ router.route("/delete/:id").delete(adminProtect, deleteRecord);
 router.route("/getAllUsers/:index").get(adminProtect, getAllUsers);
 router.route("/searchUser").get(adminProtect, searchUsers);
 router.route("/getall").get(adminProtect, getAllRecords);
+router.route("/getallUser/byAdminId").get(adminProtect, getAllUserByAdminId);
 // router.route("/add-admin").post(addAdmin);
 
 export default router;
